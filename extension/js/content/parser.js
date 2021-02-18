@@ -1,36 +1,51 @@
-function loadBookData(onSuccess) {
+function loadBookData() {
 
     var bookId = getBookId();
 
     if (typeof bookId === 'undefined') {
-        return;
+        return Promise.reject('Cannot get book identifier');
     }
 
-    requestBookData(bookId, content => {
-        const pageData = preparePageData(content);
-        onSuccess(pageData);
+    return requestBookData(bookId).map(content => {
+        return preparePageData(content);
     });
 }
 
-// Makes an AJAX request to get information about the book with `bookId`.
-// `onSuccess` is called if the request has succeeded, its parameter is parsed JSON response.
-function requestBookData(bookId, onSuccess) {
+// Allows function `f` to work on the resolved data in the Promise without
+// knowing about the Promise.
+Promise.prototype.map = function(f) {
+    return this.then(x => {
+        return Promise.resolve(f(x));
+    });
+};
+
+// Makes an AJAX request to get information about the book with `bookId` and returns a Promise
+// where successful result is the parsed JSON response.
+function requestBookData(bookId) {
     // note: `LIVESTREET_SECURITY_KEY` is set in the HTML page and it's correlated with the user's cookie
     // the request below works because the browser sends the user's cookie along with our data
     const securityKey = retrieveWindowVariables(['LIVESTREET_SECURITY_KEY']).LIVESTREET_SECURITY_KEY;
     // the encryption key is taken from the webpage's js file and seems to be static
     const encryptedHash = CryptoJS.AES.encrypt(JSON.stringify(securityKey), 'EKxtcg46V', { format:JsonFormatter }).toString();
 
-    $.post('https://akniga.org/ajax/b/' + bookId,
-        { bid: bookId, hash: encryptedHash, security_ls_key: securityKey },
-        response => {
-            // the response is already parsed into a JSON object, however its
-            // `items` property is still a string containing more JSON data, so
-            // we parse it here
-            var parsedResponse = response;
-            parsedResponse.items = JSON.parse(response.items);
-            onSuccess(parsedResponse);
-        })
+    // note: `jqXHR` claims to implement the Promise interface, however when `$.post` is returned
+    // directly, its `then` callback is called immediately without waiting for the response;
+    // wrapping the call in a Promise fixes that
+    return new Promise((resolve, reject) => {
+        $.post('https://akniga.org/ajax/b/' + bookId,
+            { bid: bookId, hash: encryptedHash, security_ls_key: securityKey })
+            .done(response => {
+                // the response is already parsed into a JSON object, however its
+                // `items` property is still a string containing more JSON data, so
+                // we parse it here
+                var parsedResponse = response;
+                parsedResponse.items = JSON.parse(response.items);
+                resolve(parsedResponse);
+            })
+            .fail((jqxhr, textStatus, error) => {
+                reject(error);
+            });
+    });
 }
 
 function getBookId() {

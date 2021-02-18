@@ -1,7 +1,3 @@
-$(function () {
-
-    loadBookData(function (content) {
-        chrome.runtime.sendMessage(content);
-    })
-
+browser.runtime.onMessage.addListener((message) => {
+    return loadBookData();
 });

@@ -101,10 +101,25 @@ function buttonDisable(tabId) {
 }
 
 browserAction.onClicked.addListener(function (tab) {
-    downloadContent();
-    buttonDisable(tab.id);
+    //downloadContent();
+    //buttonDisable(tab.id);
+
+    function downloadBookData(tabs) {
+        for (let tab of tabs) {
+            browser.tabs.sendMessage(tab.id, {})
+                .then(response => {
+                    console.log(`${Date.now()} Book data: ${response}`);
+                })
+                .catch(error => { console.error(`${Date.now()} Error: ${error}`); });
+        }
+    }
+
+    // note: the promise returns an array of tabs, even though we can only have one active tab
+    const activeTabs = browser.tabs.query({ currentWindow: true, active: true })
+    activeTabs.then(downloadBookData);
 });
 
+/*
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
     if (changeInfo.status === "loading") {
         buttonDisable(tab.id)
@@ -121,3 +136,4 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
     browserAction.setTitle({title: title});
     browserAction.setIcon({path: "img/icon_24_24.png", tabId: tabId});
 });
+*/
