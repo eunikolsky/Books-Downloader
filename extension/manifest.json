@@ -9,9 +9,10 @@
     "icons": {
         "128": "img/icon_128_128.png"
     },
-    "browser_action": {
-        "default_icon": "img/icon_24_24_gray.png",
-        "default_title": "__MSG_buttonTitle__"
+    "page_action": {
+        "default_icon": "img/icon_24_24.png",
+        "default_title": "__MSG_buttonTitle__",
+        "show_matches": ["https://akniga.org/*"]
     },
     "content_scripts": [
         {

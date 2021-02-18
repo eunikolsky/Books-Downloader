@@ -100,7 +100,7 @@ function buttonDisable(tabId) {
     browserAction.setIcon({path: "img/icon_24_24_gray.png", tabId: tabId});
 }
 
-browserAction.onClicked.addListener(function (tab) {
+browser.pageAction.onClicked.addListener(function (tab) {
     //downloadContent();
     //buttonDisable(tab.id);
 
