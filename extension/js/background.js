@@ -104,19 +104,11 @@ browserAction.onClicked.addListener(function (tab) {
     //downloadContent();
     //buttonDisable(tab.id);
 
-    function downloadBookData(tabs) {
-        for (let tab of tabs) {
-            browser.tabs.sendMessage(tab.id, {})
-                .then(response => {
-                    console.log(`${Date.now()} Book data: ${response}`);
-                })
-                .catch(error => { console.error(`${Date.now()} Error: ${error}`); });
-        }
-    }
-
-    // note: the promise returns an array of tabs, even though we can only have one active tab
-    const activeTabs = browser.tabs.query({ currentWindow: true, active: true })
-    activeTabs.then(downloadBookData);
+    browser.tabs.sendMessage(tab.id, {})
+        .then(response => {
+            console.log(`${Date.now()} Book data: ${JSON.stringify(response)}`);
+        })
+        .catch(error => { console.error(`${Date.now()} Error: ${error}`); });
 });
 
 /*
